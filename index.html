@@ -8,7 +8,7 @@
 </head>
 <body data-theme="light">
     <nav class="main-nav">
-        <div class="logo">Kairo</div>
+        <div class="logo"> Kairo</div>
         <div class="theme-toggle">
             <button id="themeToggle">🌞</button>
         </div>
@@ -35,56 +35,81 @@
         <!-- Add Habit Form -->
         <section id="add-habit" class="page">
             <h2>Create New Habit</h2>
-            <form id="habitForm">
+            <form id="habitForm" class="mobile-friendly-form">
                 <div class="form-group">
-                    <label for="habitName">Habit Name</label>
-                    <input type="text" id="habitName" required>
+                    <label for="habitName">Habit Name *</label>
+                    <input 
+                        type="text" 
+                        id="habitName" 
+                        required 
+                        autocomplete="off"
+                        placeholder="Enter habit name">
                 </div>
                 <div class="form-group">
                     <label for="habitDescription">Description</label>
-                    <textarea id="habitDescription"></textarea>
+                    <textarea 
+                        id="habitDescription" 
+                        placeholder="Enter description"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="habitCategory">Category</label>
-                    <select id="habitCategory" required></select>
+                    <label for="habitCategory">Category *</label>
+                    <select id="habitCategory" required>
+                        <option value="">Select a category</option>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label for="habitFrequency">Frequency</label>
-                    <select id="habitFrequency" onchange="toggleGoalInput()">
+                    <label for="habitFrequency">Frequency *</label>
+                    <select id="habitFrequency" required onchange="toggleGoalInput()">
                         <option value="daily">Daily</option>
                         <option value="weekly">Weekly</option>
                         <option value="monthly">Monthly</option>
                     </select>
                 </div>
                 <div class="form-group" id="goalInputContainer" style="display: none;">
-                    <label for="habitGoal">Goal (times per period)</label>
-                    <input type="number" id="habitGoal" min="1" value="1">
+                    <label for="habitGoal">Goal (times per period) *</label>
+                    <input 
+                        type="number" 
+                        id="habitGoal" 
+                        min="1" 
+                        value="1"
+                        required>
                 </div>
-                <button type="submit">Create Habit</button>
+                <button type="submit" class="submit-btn">Create Habit</button>
             </form>
         </section>
 
-        <!-- Categories Management -->
+        <!-- Category Form Section -->
         <section id="categories" class="page">
             <h2>Manage Categories</h2>
-            <form id="categoryForm">
+            <form id="categoryForm" class="mobile-friendly-form">
                 <div class="form-group">
-                    <label for="categoryName">Category Name</label>
-                    <input type="text" id="categoryName" required>
+                    <label for="categoryName">Category Name *</label>
+                    <input 
+                        type="text" 
+                        id="categoryName" 
+                        required 
+                        autocomplete="off"
+                        placeholder="Enter category name">
                 </div>
                 <div class="form-group">
-                    <label for="categoryIcon">Icon (emoji)</label>
-                    <input type="text" id="categoryIcon" required>
+                    <label for="categoryIcon">Icon (emoji) *</label>
+                    <input 
+                        type="text" 
+                        id="categoryIcon" 
+                        required 
+                        autocomplete="off"
+                        placeholder="Enter an emoji">
                 </div>
                 <div class="form-group">
-                    <label for="categoryColor">Color</label>
-                    <input type="color" id="categoryColor" required>
+                    <label for="categoryColor">Color *</label>
+                    <input 
+                        type="color" 
+                        id="categoryColor" 
+                        required>
                 </div>
-                <button type="submit">Add Category</button>
+                <button type="submit" class="submit-btn">Add Category</button>
             </form>
-            <div id="categoriesList" class="categories-list">
-                <!-- Categories will be rendered here -->
-            </div>
+            <div id="categoriesList" class="categories-list"></div>
         </section>
 
         <!-- My Habits View -->
