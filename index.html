@@ -10,7 +10,7 @@
     <nav class="main-nav">
         <div class="logo"> Kairo</div>
         <div class="theme-toggle">
-            <button id="themeToggle">🌞</button>
+            
         </div>
         <ul class="nav-links">
             <li><a href="#" class="active" data-page="dashboard">Dashboard</a></li>
@@ -35,6 +35,7 @@
         <!-- Add Habit Form -->
         <section id="add-habit" class="page">
             <h2>Create New Habit</h2>
+            <!-- Habit Form -->
             <form id="habitForm" class="mobile-friendly-form">
                 <div class="form-group">
                     <label for="habitName">Habit Name *</label>
@@ -59,13 +60,13 @@
                 </div>
                 <div class="form-group">
                     <label for="habitFrequency">Frequency *</label>
-                    <select id="habitFrequency" required onchange="toggleGoalInput()">
+                    <select id="habitFrequency" required>
                         <option value="daily">Daily</option>
                         <option value="weekly">Weekly</option>
                         <option value="monthly">Monthly</option>
                     </select>
                 </div>
-                <div class="form-group" id="goalInputContainer" style="display: none;">
+                <div class="form-group" id="goalInputContainer">
                     <label for="habitGoal">Goal (times per period) *</label>
                     <input 
                         type="number" 
@@ -81,6 +82,7 @@
         <!-- Category Form Section -->
         <section id="categories" class="page">
             <h2>Manage Categories</h2>
+            <!-- Category Form -->
             <form id="categoryForm" class="mobile-friendly-form">
                 <div class="form-group">
                     <label for="categoryName">Category Name *</label>
