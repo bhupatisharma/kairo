@@ -11,6 +11,7 @@ let state = {
 document.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
     setupEventListeners();
+    setupMobileEvents();
     renderCategories();
     renderDashboard();
     populateCategoryDropdown();
@@ -212,247 +213,665 @@ function showPage(pageId) {
 
 function handleCategorySubmit(e) {
     e.preventDefault();
+
+    const nameInput = document.getElementById('categoryName');
+    const iconInput = document.getElementById('categoryIcon');
+    const colorInput = document.getElementById('categoryColor');
+
+    // Validate inputs
+    if (!nameInput.value || !iconInput.value || !colorInput.value) {
+        alert('Please fill in all fields');
+        return;
+    }
+
     const category = {
         id: Date.now(),
-        name: document.getElementById('categoryName').value,
-        icon: document.getElementById('categoryIcon').value,
-        color: document.getElementById('categoryColor').value
+        name: nameInput.value.trim(),
+        icon: iconInput.value.trim(),
+        color: colorInput.value
     };
 
-    state.categories.push(category);
-    saveToLocalStorage();
-    renderCategories();
-    populateCategoryDropdown();
-    e.target.reset();
+    try {
+        state.categories.push(category);
+        saveToLocalStorage();
+        renderCategories();
+        populateCategoryDropdown();
+        e.target.reset();
+        
+        // Show success message
+        alert('Category created successfully!');
+    } catch (error) {
+        console.error('Error creating category:', error);
+        alert('Failed to create category. Please try again.');
+    }
 }
 
 function handleHabitSubmit(e) {
     e.preventDefault();
-    const frequency = document.getElementById('habitFrequency').value;
-    const habit = {
-        id: Date.now(),
-        name: document.getElementById('habitName').value,
-        description: document.getElementById('habitDescription').value,
-        category: document.getElementById('habitCategory').value,
-        frequency: frequency,
-        goal: frequency === 'daily' ? 1 : parseInt(document.getElementById('habitGoal').value),
-        completedDates: [],
-        createdAt: new Date().toISOString()
-    };
 
-    state.habits.push(habit);
-    saveToLocalStorage();
-    renderDashboard();
-    e.target.reset();
-    showPage('dashboard');
-}
+    const nameInput = document.getElementById('habitName');
+    const descInput = document.getElementById('habitDescription');
+    const categoryInput = document.getElementById('habitCategory');
+    const frequencyInput = document.getElementById('habitFrequency');
+    const goalInput = document.getElementById('habitGoal');
 
-function renderCategories() {
-    const categoriesList = document.getElementById('categoriesList');
-    if (!categoriesList) return;
-
-    categoriesList.innerHTML = '';
-    state.categories.forEach(category => {
-        const categoryElement = document.createElement('div');
-        categoryElement.className = 'category-item';
-        categoryElement.innerHTML = `
-            <div class="category-info">
-                <span>${category.icon}</span>
-                <span>${category.name}</span>
-                <div class="category-color-preview" style="background-color: ${category.color}"></div>
-            </div>
-            <button class="delete-btn" data-category-id="${category.id}">Delete</button>
-        `;
-
-        const deleteBtn = categoryElement.querySelector('.delete-btn');
-        deleteBtn.addEventListener('click', () => deleteCategory(category.id));
-
-        categoriesList.appendChild(categoryElement);
-    });
-}
-
-function deleteCategory(categoryId) {
-    if (!confirm('Are you sure you want to delete this category? All associated habits will also be deleted.')) {
+    // Validate required fields
+    if (!nameInput.value || !categoryInput.value || !frequencyInput.value) {
+        alert('Please fill in all required fields');
         return;
     }
 
-    state.habits = state.habits.filter(habit => habit.category !== categoryId.toString());
-    state.categories = state.categories.filter(category => category.id !== categoryId);
-    
-    saveToLocalStorage();
-    renderCategories();
-    renderDashboard();
-    populateCategoryDropdown();
+    try {
+        const habit = {
+            id: Date.now(),
+            name: nameInput.value.trim(),
+            description: descInput ? descInput.value.trim() : '',
+            category: categoryInput.value,
+            frequency: frequencyInput.value,
+            goal: frequencyInput.value === 'daily' ? 1 : parseInt(goalInput.value || 1),
+            completedDates: [],
+            createdAt: new Date().toISOString()
+        };
+
+        state.habits.push(habit);
+        saveToLocalStorage();
+        renderDashboard();
+        e.target.reset();
+        showPage('dashboard');
+        
+        // Show success message
+        alert('Habit created successfully!');
+    } catch (error) {
+        console.error('Error creating habit:', error);
+        alert('Failed to create habit. Please try again.');
+    }
 }
 
-function renderDashboard() {
-    const grid = document.getElementById('categoriesGrid');
-    const progress = document.getElementById('dailyProgress');
-    if (!grid || !progress) return;
-
-    grid.innerHTML = '';
-    
-    const today = new Date().toDateString();
-    let totalHabits = 0;
-    let completedHabits = 0;
-
-    state.categories.forEach(category => {
-        const categoryHabits = state.habits.filter(h => h.category === category.id.toString());
-        if (categoryHabits.length > 0) {
-            const card = createCategoryCard(category, categoryHabits);
-            grid.appendChild(card);
-            
-            totalHabits += categoryHabits.length;
-            completedHabits += categoryHabits.filter(habit => 
-                habit.completedDates.includes(today)
-            ).length;
-        }
+// Add touch event handling for mobile
+function setupMobileEvents() {
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        // Prevent zoom on input focus for mobile
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('focus', (e) => {
+                e.target.setAttribute('autocomplete', 'off');
+                e.target.setAttribute('autocorrect', 'off');
+                e.target.setAttribute('autocapitalize', 'off');
+            });
+        });
     });
+}
 
-    // Update progress
-    progress.innerHTML = `
-        <h3>Today's Progress: ${completedHabits}/${totalHabits} habits completed</h3>
-        <div class="progress-bar">
-            <div class="progress" style="width: ${(completedHabits/totalHabits) * 100}%"></div>
+function setupAnalytics() {
+    const habitSelect = document.getElementById('habitSelect');
+    if (!habitSelect) return;
+
+    // Populate habit selector
+    habitSelect.innerHTML = '<option value="">Select a habit</option>' +
+        state.habits.map(habit => `
+            <option value="${habit.id}">${habit.name}</option>
+        `).join('');
+
+    // Add event listeners
+    habitSelect.addEventListener('change', updateCalendar);
+    document.getElementById('prevMonth').addEventListener('click', () => changeMonth(-1));
+    document.getElementById('nextMonth').addEventListener('click', () => changeMonth(1));
+
+    updateCalendar();
+}
+
+function changeMonth(delta) {
+    currentDate.setMonth(currentDate.getMonth() + delta);
+    updateCalendar();
+}
+
+function updateCalendar() {
+    const habitId = document.getElementById('habitSelect').value;
+    const habit = state.habits.find(h => h.id.toString() === habitId);
+    
+    updateMonthDisplay();
+    renderCalendarDates(habit);
+    updateMonthlyStats(habit);
+}
+
+function updateMonthDisplay() {
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    document.getElementById('currentMonth').textContent = 
+        `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+}
+
+function renderCalendarDates(habit) {
+    const calendarDates = document.getElementById('calendarDates');
+    calendarDates.innerHTML = '';
+
+    const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    const startPadding = firstDay.getDay();
+    
+    // Add padding for start of month
+    for (let i = 0; i < startPadding; i++) {
+        calendarDates.appendChild(createDateElement(''));
+    }
+
+    // Add dates
+    for (let date = 1; date <= lastDay.getDate(); date++) {
+        const dateString = new Date(currentDate.getFullYear(), 
+            currentDate.getMonth(), date).toDateString();
+        
+        let status = '';
+        if (habit) {
+            if (habit.completedDates.includes(dateString)) {
+                status = 'completed';
+            } else if (shouldHaveCompleted(habit, dateString)) {
+                status = 'failed';
+            }
+        }
+        
+        calendarDates.appendChild(createDateElement(date, status));
+    }
+}
+
+function createDateElement(date, status = '') {
+    const div = document.createElement('div');
+    div.className = `calendar-date ${status}`;
+    div.textContent = date;
+    return div;
+}
+
+function shouldHaveCompleted(habit, dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    if (date > now) return false;
+
+    switch(habit.frequency) {
+        case 'daily':
+            return true;
+        case 'weekly':
+            return date.getDay() === 0 && getWeeklyCompletions(habit, date) < habit.goal;
+        case 'monthly':
+            return date.getDate() === lastDayOfMonth(date) && 
+                   getMonthlyCompletions(habit, date) < habit.goal;
+        default:
+            return false;
+    }
+}
+
+function getWeeklyCompletions(habit, date) {
+    const weekStart = new Date(date);
+    weekStart.setDate(date.getDate() - date.getDay());
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+
+    return habit.completedDates.filter(d => {
+        const completed = new Date(d);
+        return completed >= weekStart && completed <= weekEnd;
+    }).length;
+}
+
+function getMonthlyCompletions(habit, date) {
+    return habit.completedDates.filter(d => {
+        const completed = new Date(d);
+        return completed.getMonth() === date.getMonth() &&
+               completed.getFullYear() === date.getFullYear();
+    }).length;
+}
+
+function lastDayOfMonth(date) {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+}
+
+function updateMonthlyStats(habit) {
+    const statsContainer = document.getElementById('monthlyStats');
+    if (!habit) {
+        statsContainer.innerHTML = '<p>Select a habit to view statistics</p>';
+        return;
+    }
+
+    const totalDays = new Date(currentDate.getFullYear(), 
+        currentDate.getMonth() + 1, 0).getDate();
+    const completions = getMonthlyCompletions(habit, currentDate);
+    const goal = habit.frequency === 'monthly' ? habit.goal : 
+                habit.frequency === 'weekly' ? habit.goal * 4 : totalDays;
+
+    statsContainer.innerHTML = `
+        <div class="stat-item">
+            <span>Monthly Goal:</span>
+            <span>${completions}/${goal} completions</span>
+        </div>
+        <div class="stat-item">
+            <span>Success Rate:</span>
+            <span>${Math.round((completions/goal) * 100)}%</span>
         </div>
     `;
 }
 
-function createCategoryCard(category, habits) {
-    const div = document.createElement('div');
-    div.className = 'category-card';
-    div.style.borderColor = category.color;
-    
-    const today = new Date().toDateString();
-    const currentMonth = new Date().getMonth();
-    const currentWeek = getWeekNumber(new Date());
-    
-    div.innerHTML = `
-        <h3>${category.icon} ${category.name}</h3>
-        <ul class="habits-list">
-            ${habits.map(habit => {
-                const progress = getHabitProgress(habit);
-                return `
-                    <li>
-                        <div class="habit-item">
-                            <div class="habit-check">
-                                <input type="checkbox" 
-                                    id="habit-${habit.id}" 
-                                    ${habit.completedDates.includes(today) ? 'checked' : ''}>
-                                <label for="habit-${habit.id}">${habit.name}</label>
-                            </div>
-                            <div class="habit-progress">
-                                ${progress.current}/${habit.goal} ${habit.frequency}
-                            </div>
-                        </div>
-                    </li>
-                `;
-            }).join('')}
-        </ul>
-    `;
+function showPage(pageId) {
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+    const targetPage = document.getElementById(pageId);
+    if (targetPage) {
+        targetPage.classList.add('active');
+    }
 
-    // Add event listeners for checkboxes
-    div.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-        checkbox.addEventListener('change', (e) => {
-            const habitId = parseInt(e.target.id.split('-')[1]);
-            toggleHabitCompletion(habitId);
+    // Update navigation active state
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.classList.remove('active');
+        if (link.dataset.page === pageId) {
+            link.classList.add('active');
+        }
+    });
+}
+
+function handleCategorySubmit(e) {
+    e.preventDefault();
+
+    const nameInput = document.getElementById('categoryName');
+    const iconInput = document.getElementById('categoryIcon');
+    const colorInput = document.getElementById('categoryColor');
+
+    // Validate inputs
+    if (!nameInput.value || !iconInput.value || !colorInput.value) {
+        alert('Please fill in all fields');
+        return;
+    }
+
+    const category = {
+        id: Date.now(),
+        name: nameInput.value.trim(),
+        icon: iconInput.value.trim(),
+        color: colorInput.value
+    };
+
+    try {
+        state.categories.push(category);
+        saveToLocalStorage();
+        renderCategories();
+        populateCategoryDropdown();
+        e.target.reset();
+        
+        // Show success message
+        alert('Category created successfully!');
+    } catch (error) {
+        console.error('Error creating category:', error);
+        alert('Failed to create category. Please try again.');
+    }
+}
+
+function handleHabitSubmit(e) {
+    e.preventDefault();
+
+    const nameInput = document.getElementById('habitName');
+    const descInput = document.getElementById('habitDescription');
+    const categoryInput = document.getElementById('habitCategory');
+    const frequencyInput = document.getElementById('habitFrequency');
+    const goalInput = document.getElementById('habitGoal');
+
+    // Validate required fields
+    if (!nameInput.value || !categoryInput.value || !frequencyInput.value) {
+        alert('Please fill in all required fields');
+        return;
+    }
+
+    try {
+        const habit = {
+            id: Date.now(),
+            name: nameInput.value.trim(),
+            description: descInput ? descInput.value.trim() : '',
+            category: categoryInput.value,
+            frequency: frequencyInput.value,
+            goal: frequencyInput.value === 'daily' ? 1 : parseInt(goalInput.value || 1),
+            completedDates: [],
+            createdAt: new Date().toISOString()
+        };
+
+        state.habits.push(habit);
+        saveToLocalStorage();
+        renderDashboard();
+        e.target.reset();
+        showPage('dashboard');
+        
+        // Show success message
+        alert('Habit created successfully!');
+    } catch (error) {
+        console.error('Error creating habit:', error);
+        alert('Failed to create habit. Please try again.');
+    }
+}
+
+// Add touch event handling for mobile
+function setupMobileEvents() {
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        // Prevent zoom on input focus for mobile
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('focus', (e) => {
+                e.target.setAttribute('autocomplete', 'off');
+                e.target.setAttribute('autocorrect', 'off');
+                e.target.setAttribute('autocapitalize', 'off');
+            });
         });
     });
+}
+
+function setupAnalytics() {
+    const habitSelect = document.getElementById('habitSelect');
+    if (!habitSelect) return;
+
+    // Populate habit selector
+    habitSelect.innerHTML = '<option value="">Select a habit</option>' +
+        state.habits.map(habit => `
+            <option value="${habit.id}">${habit.name}</option>
+        `).join('');
+
+    // Add event listeners
+    habitSelect.addEventListener('change', updateCalendar);
+    document.getElementById('prevMonth').addEventListener('click', () => changeMonth(-1));
+    document.getElementById('nextMonth').addEventListener('click', () => changeMonth(1));
+
+    updateCalendar();
+}
+
+function changeMonth(delta) {
+    currentDate.setMonth(currentDate.getMonth() + delta);
+    updateCalendar();
+}
+
+function updateCalendar() {
+    const habitId = document.getElementById('habitSelect').value;
+    const habit = state.habits.find(h => h.id.toString() === habitId);
     
+    updateMonthDisplay();
+    renderCalendarDates(habit);
+    updateMonthlyStats(habit);
+}
+
+function updateMonthDisplay() {
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    document.getElementById('currentMonth').textContent = 
+        `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+}
+
+function renderCalendarDates(habit) {
+    const calendarDates = document.getElementById('calendarDates');
+    calendarDates.innerHTML = '';
+
+    const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    const startPadding = firstDay.getDay();
+    
+    // Add padding for start of month
+    for (let i = 0; i < startPadding; i++) {
+        calendarDates.appendChild(createDateElement(''));
+    }
+
+    // Add dates
+    for (let date = 1; date <= lastDay.getDate(); date++) {
+        const dateString = new Date(currentDate.getFullYear(), 
+            currentDate.getMonth(), date).toDateString();
+        
+        let status = '';
+        if (habit) {
+            if (habit.completedDates.includes(dateString)) {
+                status = 'completed';
+            } else if (shouldHaveCompleted(habit, dateString)) {
+                status = 'failed';
+            }
+        }
+        
+        calendarDates.appendChild(createDateElement(date, status));
+    }
+}
+
+function createDateElement(date, status = '') {
+    const div = document.createElement('div');
+    div.className = `calendar-date ${status}`;
+    div.textContent = date;
     return div;
 }
 
-function toggleHabitCompletion(habitId) {
-    const habit = state.habits.find(h => h.id === habitId);
-    if (!habit) return;
+function shouldHaveCompleted(habit, dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    if (date > now) return false;
 
-    const today = new Date().toDateString();
-    const completionIndex = habit.completedDates.indexOf(today);
-    
-    if (completionIndex === -1) {
-        habit.completedDates.push(today);
-    } else {
-        habit.completedDates.splice(completionIndex, 1);
+    switch(habit.frequency) {
+        case 'daily':
+            return true;
+        case 'weekly':
+            return date.getDay() === 0 && getWeeklyCompletions(habit, date) < habit.goal;
+        case 'monthly':
+            return date.getDate() === lastDayOfMonth(date) && 
+                   getMonthlyCompletions(habit, date) < habit.goal;
+        default:
+            return false;
     }
-    
-    saveToLocalStorage();
-    renderDashboard();
 }
 
-function populateCategoryDropdown() {
-    const categorySelect = document.getElementById('habitCategory');
-    if (!categorySelect) return;
+function getWeeklyCompletions(habit, date) {
+    const weekStart = new Date(date);
+    weekStart.setDate(date.getDate() - date.getDay());
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
 
-    categorySelect.innerHTML = '<option value="">Select a category</option>';
-    state.categories.forEach(category => {
-        categorySelect.innerHTML += `
-            <option value="${category.id}">${category.name}</option>
-        `;
+    return habit.completedDates.filter(d => {
+        const completed = new Date(d);
+        return completed >= weekStart && completed <= weekEnd;
+    }).length;
+}
+
+function getMonthlyCompletions(habit, date) {
+    return habit.completedDates.filter(d => {
+        const completed = new Date(d);
+        return completed.getMonth() === date.getMonth() &&
+               completed.getFullYear() === date.getFullYear();
+    }).length;
+}
+
+function lastDayOfMonth(date) {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+}
+
+function updateMonthlyStats(habit) {
+    const statsContainer = document.getElementById('monthlyStats');
+    if (!habit) {
+        statsContainer.innerHTML = '<p>Select a habit to view statistics</p>';
+        return;
+    }
+
+    const totalDays = new Date(currentDate.getFullYear(), 
+        currentDate.getMonth() + 1, 0).getDate();
+    const completions = getMonthlyCompletions(habit, currentDate);
+    const goal = habit.frequency === 'monthly' ? habit.goal : 
+                habit.frequency === 'weekly' ? habit.goal * 4 : totalDays;
+
+    statsContainer.innerHTML = `
+        <div class="stat-item">
+            <span>Monthly Goal:</span>
+            <span>${completions}/${goal} completions</span>
+        </div>
+        <div class="stat-item">
+            <span>Success Rate:</span>
+            <span>${Math.round((completions/goal) * 100)}%</span>
+        </div>
+    `;
+}
+
+function showPage(pageId) {
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+    const targetPage = document.getElementById(pageId);
+    if (targetPage) {
+        targetPage.classList.add('active');
+    }
+
+    // Update navigation active state
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.classList.remove('active');
+        if (link.dataset.page === pageId) {
+            link.classList.add('active');
+        }
     });
 }
 
-function toggleTheme() {
-    state.settings.theme = state.settings.theme === 'light' ? 'dark' : 'light';
-    document.body.dataset.theme = state.settings.theme;
-    document.getElementById('themeToggle').textContent = 
-        state.settings.theme === 'light' ? '🌞' : '🌙';
-    saveToLocalStorage();
+function handleCategorySubmit(e) {
+    e.preventDefault();
+
+    const nameInput = document.getElementById('categoryName');
+    const iconInput = document.getElementById('categoryIcon');
+    const colorInput = document.getElementById('categoryColor');
+
+    // Validate inputs
+    if (!nameInput.value || !iconInput.value || !colorInput.value) {
+        alert('Please fill in all fields');
+        return;
+    }
+
+    const category = {
+        id: Date.now(),
+        name: nameInput.value.trim(),
+        icon: iconInput.value.trim(),
+        color: colorInput.value
+    };
+
+    try {
+        state.categories.push(category);
+        saveToLocalStorage();
+        renderCategories();
+        populateCategoryDropdown();
+        e.target.reset();
+        
+        // Show success message
+        alert('Category created successfully!');
+    } catch (error) {
+        console.error('Error creating category:', error);
+        alert('Failed to create category. Please try again.');
+    }
 }
 
-// Add this new function
-function toggleGoalInput() {
-    const frequency = document.getElementById('habitFrequency').value;
-    const goalContainer = document.getElementById('goalInputContainer');
-    goalContainer.style.display = frequency === 'daily' ? 'none' : 'block';
+function handleHabitSubmit(e) {
+    e.preventDefault();
+
+    const nameInput = document.getElementById('habitName');
+    const descInput = document.getElementById('habitDescription');
+    const categoryInput = document.getElementById('habitCategory');
+    const frequencyInput = document.getElementById('habitFrequency');
+    const goalInput = document.getElementById('habitGoal');
+
+    // Validate required fields
+    if (!nameInput.value || !categoryInput.value || !frequencyInput.value) {
+        alert('Please fill in all required fields');
+        return;
+    }
+
+    try {
+        const habit = {
+            id: Date.now(),
+            name: nameInput.value.trim(),
+            description: descInput ? descInput.value.trim() : '',
+            category: categoryInput.value,
+            frequency: frequencyInput.value,
+            goal: frequencyInput.value === 'daily' ? 1 : parseInt(goalInput.value || 1),
+            completedDates: [],
+            createdAt: new Date().toISOString()
+        };
+
+        state.habits.push(habit);
+        saveToLocalStorage();
+        renderDashboard();
+        e.target.reset();
+        showPage('dashboard');
+        
+        // Show success message
+        alert('Habit created successfully!');
+    } catch (error) {
+        console.error('Error creating habit:', error);
+        alert('Failed to create habit. Please try again.');
+    }
 }
 
-// Add these helper functions
-function getWeekNumber(date) {
-    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-    const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
-    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+// Add touch event handling for mobile
+function setupMobileEvents() {
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        // Prevent zoom on input focus for mobile
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('focus', (e) => {
+                e.target.setAttribute('autocomplete', 'off');
+                e.target.setAttribute('autocorrect', 'off');
+                e.target.setAttribute('autocapitalize', 'off');
+            });
+        });
+    });
 }
 
-function getHabitProgress(habit) {
-    const now = new Date();
-    const completedDates = habit.completedDates.map(date => new Date(date));
+// Update the main event listener to include mobile setup
+document.addEventListener('DOMContentLoaded', () => {
+    loadFromLocalStorage();
+    setupEventListeners();
+    setupMobileEvents();
+    renderCategories();
+    renderDashboard();
+    populateCategoryDropdown();
+});
+
+function setupEventListeners() {
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+    }
+
+    // Navigation
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            showPage(e.target.dataset.page);
+        });
+    });
+
+    // Forms
+    const habitForm = document.getElementById('habitForm');
+    if (habitForm) {
+        habitForm.addEventListener('submit', handleHabitSubmit);
+    }
+
+    const categoryForm = document.getElementById('categoryForm');
+    if (categoryForm) {
+        categoryForm.addEventListener('submit', handleCategorySubmit);
+    }
+
+    // Add this to update habits list when switching to the habits page
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const page = e.target.dataset.page;
+            if (page === 'habits') {
+                renderHabitsList();
+            }
+            showPage(page);
+        });
+    });
     
-    switch(habit.frequency) {
-        case 'weekly':
-            const currentWeek = getWeekNumber(now);
-            const thisWeekCompletions = completedDates.filter(date => 
-                getWeekNumber(date) === currentWeek && 
-                date.getFullYear() === now.getFullYear()
-            ).length;
-            return { current: thisWeekCompletions };
-            
-        case 'monthly':
-            const thisMonthCompletions = completedDates.filter(date => 
-                date.getMonth() === now.getMonth() && 
-                date.getFullYear() === now.getFullYear()
-            ).length;
-            return { current: thisMonthCompletions };
-            
-        default: // daily
-            return { current: habit.completedDates.includes(now.toDateString()) ? 1 : 0 };
-    }
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const page = e.target.dataset.page;
+            if (page === 'analytics') {
+                setupAnalytics();
+            }
+            showPage(page);
+        });
+    });
 }
 
-function saveToLocalStorage() {
-    localStorage.setItem('habitHiveData', JSON.stringify(state));
-}
-
-function loadFromLocalStorage() {
-    const saved = localStorage.getItem('habitHiveData');
-    if (saved) {
-        state = JSON.parse(saved);
-        document.body.dataset.theme = state.settings.theme;
-        document.getElementById('themeToggle').textContent = 
-            state.settings.theme === 'light' ? '🌞' : '🌙';
-    }
-}
-
-// Add after your existing functions
+// ...existing code...
 
 function renderHabitsList() {
     const habitsContainer = document.querySelector('.habits-container');
@@ -570,30 +989,4 @@ function deleteHabit(habitId) {
     saveToLocalStorage();
     renderHabitsList();
     renderDashboard();
-}
-
-// Modify your existing setupEventListeners function to include:
-function setupEventListeners() {
-    // ...existing code...
-    
-    // Add this to update habits list when switching to the habits page
-    document.querySelectorAll('.nav-links a').forEach(link => {
-        link.addEventListener('click', (e) => {
-            const page = e.target.dataset.page;
-            if (page === 'habits') {
-                renderHabitsList();
-            }
-            showPage(page);
-        });
-    });
-    
-    document.querySelectorAll('.nav-links a').forEach(link => {
-        link.addEventListener('click', (e) => {
-            const page = e.target.dataset.page;
-            if (page === 'analytics') {
-                setupAnalytics();
-            }
-            showPage(page);
-        });
-    });
 }
