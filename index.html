@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#ffd700">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>HabitHive - Track Your Habits</title>
@@ -12,16 +12,18 @@
 <body data-theme="light">
     <nav class="main-nav">
         <div class="logo">🐝 HabitHive</div>
+        <div class="nav-container">
+            <ul class="nav-links">
+                <li><a href="#" class="active" data-page="dashboard">Dashboard</a></li>
+                <li><a href="#" data-page="habits">My Habits</a></li>
+                <li><a href="#" data-page="add-habit">Add Habit</a></li>
+                <li><a href="#" data-page="categories">Categories</a></li>
+                <li><a href="#" data-page="analytics">Analytics</a></li>
+            </ul>
+        </div>
         <div class="theme-toggle">
             <button id="themeToggle">🌞</button>
         </div>
-        <ul class="nav-links">
-            <li><a href="#" class="active" data-page="dashboard">Dashboard</a></li>
-            <li><a href="#" data-page="habits">My Habits</a></li>
-            <li><a href="#" data-page="add-habit">Add Habit</a></li>
-            <li><a href="#" data-page="categories">Categories</a></li>
-            <li><a href="#" data-page="analytics">Analytics</a></li>
-        </ul>
     </nav>
 
     <main id="app">
