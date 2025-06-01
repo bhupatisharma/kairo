@@ -7,143 +7,6 @@ let state = {
     }
 };
 
-// Initialize app
-document.addEventListener('DOMContentLoaded', () => {
-    loadFromLocalStorage();
-    setupEventListeners();
-    setupMobileEvents();
-    renderCategories();
-    renderDashboard();
-    populateCategoryDropdown();
-});
-
-function setupEventListeners() {
-    // Navigation
-    document.querySelectorAll('.nav-links a').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const page = e.target.dataset.page;
-            if (page === 'habits') {
-                renderHabitsList();
-            } else if (page === 'analytics') {
-                setupAnalytics();
-            }
-            showPage(page);
-        });
-    });
-
-    // Forms
-    const habitForm = document.getElementById('habitForm');
-    if (habitForm) {
-        habitForm.addEventListener('submit', handleHabitSubmit);
-    }
-
-    const categoryForm = document.getElementById('categoryForm');
-    if (categoryForm) {
-        categoryForm.addEventListener('submit', handleCategorySubmit);
-    }
-
-    // Add touch events for mobile
-    setupMobileEvents();
-}
-
-function setupMobileEvents() {
-    document.querySelectorAll('button, .action-btn').forEach(btn => {
-        // Remove any existing event listeners
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-
-        // Add new event listeners
-        newBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            newBtn.style.transform = 'scale(0.98)';
-        }, { passive: false });
-
-        newBtn.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            newBtn.style.transform = 'scale(1)';
-            // Trigger click event
-            newBtn.click();
-        }, { passive: false });
-
-        // Ensure click events still work on desktop
-        newBtn.addEventListener('click', (e) => {
-            const action = newBtn.dataset.action;
-            if (action === 'delete') {
-                const id = newBtn.dataset.id;
-                deleteHabit(id);
-            } else if (action === 'edit') {
-                const id = newBtn.dataset.id;
-                toggleEditForm(id);
-            }
-        });
-    });
-
-    // Form submit handling
-    document.querySelectorAll('form').forEach(form => {
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            if (form.id === 'habitForm') {
-                handleHabitSubmit(e);
-            } else if (form.id === 'categoryForm') {
-                handleCategorySubmit(e);
-            }
-        });
-    });
-}
-
-function populateCategoryDropdown() {
-    const categorySelect = document.getElementById('habitCategory');
-    if (!categorySelect) return;
-
-    categorySelect.innerHTML = '<option value="">Select a category</option>' +
-        state.categories.map(category => `
-            <option value="${category.id}">${category.name}</option>
-        `).join('');
-}
-
-function renderCategories() {
-    const categoriesList = document.getElementById('categoriesList');
-    if (!categoriesList) return;
-
-    categoriesList.innerHTML = state.categories.map(category => `
-        <div class="category-item">
-            <div class="category-info">
-                <span class="category-color-preview" style="background-color: ${category.color}"></span>
-                <span>${category.icon} ${category.name}</span>
-            </div>
-            <button class="delete-btn" data-action="delete" data-id="${category.id}">Delete</button>
-        </div>
-    `).join('');
-
-    // Reattach event listeners
-    setupMobileEvents();
-}
-
-// Update state structure and add localStorage functionality
-// (Removed duplicate declaration of state to avoid redeclaration error)
-
-// Add localStorage functions
-function saveToLocalStorage() {
-    try {
-        localStorage.setItem('kairoData', JSON.stringify(state));
-    } catch (error) {
-        console.error('Error saving to localStorage:', error);
-        alert('Failed to save data. Please ensure local storage is enabled.');
-    }
-}
-
-function loadFromLocalStorage() {
-    try {
-        const savedData = localStorage.getItem('kairoData');
-        if (savedData) {
-            state = JSON.parse(savedData);
-        }
-    } catch (error) {
-        console.error('Error loading from localStorage:', error);
-    }
-}
-
 // Data structure
 let currentDate = new Date();
 
@@ -151,6 +14,7 @@ let currentDate = new Date();
 document.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
     setupEventListeners();
+    setupFormEventListeners();
     setupMobileEvents();
     renderCategories();
     renderDashboard();
@@ -462,6 +326,57 @@ function handleHabitSubmit(e) {
     } catch (error) {
         console.error('Error creating habit:', error);
         alert('Failed to create habit. Please try again.');
+    }
+}
+
+// Update the initialization
+document.addEventListener('DOMContentLoaded', () => {
+    loadFromLocalStorage();
+    setupEventListeners();
+    setupFormEventListeners();
+    setupMobileEvents();
+    renderCategories();
+    renderDashboard();
+    populateCategoryDropdown();
+});
+
+function populateCategoryDropdown() {
+    const categorySelect = document.getElementById('habitCategory');
+    if (!categorySelect) return;
+
+    // Clear existing options
+    categorySelect.innerHTML = '<option value="">Select a category</option>';
+
+    // Add categories from state
+    state.categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.id;
+        option.textContent = `${category.icon} ${category.name}`;
+        categorySelect.appendChild(option);
+    });
+}
+
+function setupFormEventListeners() {
+    // Frequency dropdown change handler
+    const frequencySelect = document.getElementById('habitFrequency');
+    const goalContainer = document.getElementById('goalInputContainer');
+
+    if (frequencySelect && goalContainer) {
+        frequencySelect.addEventListener('change', (e) => {
+            if (e.target.value === 'daily') {
+                goalContainer.style.display = 'none';
+            } else {
+                goalContainer.style.display = 'block';
+            }
+        });
+    }
+
+    // Color picker enhancement
+    const colorInput = document.getElementById('categoryColor');
+    if (colorInput) {
+        colorInput.addEventListener('input', (e) => {
+            e.target.style.backgroundColor = e.target.value;
+        });
     }
 }
 
