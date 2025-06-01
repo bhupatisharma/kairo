@@ -109,6 +109,50 @@ h1, h2 {
     outline: none;
 }
 
+/* Mobile-friendly form styles */
+.mobile-friendly-form {
+    max-width: 100%;
+    padding: 1rem;
+}
+
+.mobile-friendly-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.mobile-friendly-form input,
+.mobile-friendly-form select,
+.mobile-friendly-form textarea {
+    font-size: 16px; /* Prevents iOS zoom */
+    padding: 12px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 100%;
+    -webkit-appearance: none; /* Removes default iOS styling */
+    appearance: none;
+}
+
+.mobile-friendly-form textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 1rem;
+    font-size: 16px;
+    margin-top: 1rem;
+    background-color: var(--accent-color);
+    color: var(--text-primary);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.submit-btn:active {
+    transform: scale(0.98);
+}
+
 /* Buttons */
 button {
     background-color: var(--accent-color);
@@ -445,17 +489,6 @@ button:active {
     padding: 1.25rem;
 }
 
-.stat-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.75rem;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.stat-item:last-child {
-    border-bottom: none;
-}
-
 /* Media Queries for Responsiveness */
 @media (max-width: 768px) {
     .main-nav {
@@ -475,5 +508,25 @@ button:active {
 
     .habit-details {
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .form-group label {
+        font-size: 14px;
+        margin-bottom: 0.5rem;
+    }
+
+    input[type="color"] {
+        height: 44px; /* Larger touch target */
+    }
+
+    select {
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23ffffff'%3E%3Cpath d='M6 9L0 0h12z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        padding-right: 2.5rem;
+    }
+
+    .mobile-friendly-form {
+        margin-bottom: 2rem; /* Add space for mobile keyboards */
     }
 }
