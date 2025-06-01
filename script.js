@@ -23,26 +23,11 @@ function setupEventListeners() {
         themeToggle.addEventListener('click', toggleTheme);
     }
 
-    // Navigation - combine all navigation handlers
+    // Navigation
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const page = e.target.dataset.page;
-            
-            // Handle page-specific initialization
-            switch(page) {
-                case 'habits':
-                    renderHabitsList();
-                    break;
-                case 'analytics':
-                    setupAnalytics();
-                    break;
-                case 'categories':
-                    renderCategories();
-                    break;
-            }
-            
-            showPage(page);
+            showPage(e.target.dataset.page);
         });
     });
 
@@ -56,73 +41,9 @@ function setupEventListeners() {
     if (categoryForm) {
         categoryForm.addEventListener('submit', handleCategorySubmit);
     }
-
-    // Touch events
-    setupTouchInteractions();
 }
 
 // Add these new functions
-function setupTouchInteractions() {
-    // Handle button touches
-    const allButtons = document.querySelectorAll('button');
-    allButtons.forEach(button => {
-        button.addEventListener('touchstart', handleTouchStart);
-        button.addEventListener('touchend', handleTouchEnd);
-    });
-
-    // Handle checkbox touches
-    const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
-    allCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('touchstart', handleTouchStart);
-        checkbox.addEventListener('touchend', handleTouchEnd);
-    });
-
-    // Handle select touches
-    const allSelects = document.querySelectorAll('select');
-    allSelects.forEach(select => {
-        select.addEventListener('touchstart', handleTouchStart);
-    });
-
-    // Handle navigation touches
-    const navLinks = document.querySelectorAll('.nav-links a');
-    navLinks.forEach(link => {
-        link.addEventListener('touchstart', handleTouchStart);
-        link.addEventListener('touchend', handleTouchEnd);
-    });
-}
-
-function handleTouchStart(e) {
-    // Only prevent default for specific elements
-    if (this.tagName === 'BUTTON' || this.tagName === 'A' || this.type === 'checkbox') {
-        e.preventDefault();
-    }
-    this.classList.add('touch-active');
-}
-
-function handleTouchEnd(e) {
-    // Only prevent default for specific elements
-    if (this.tagName === 'BUTTON' || this.tagName === 'A' || this.type === 'checkbox') {
-        e.preventDefault();
-    }
-    this.classList.remove('touch-active');
-    
-    // Trigger click event for checkboxes
-    if (this.type === 'checkbox') {
-        this.checked = !this.checked;
-        const event = new Event('change', { bubbles: true });
-        this.dispatchEvent(event);
-        
-    } else {
-        // Trigger click for other elements
-        // Create and dispatch a click event
-        const clickEvent = new MouseEvent('click', {
-            bubbles: true,
-            cancelable: true,
-            view: window
-        });
-        this.dispatchEvent(clickEvent);
-    }
-}
 
 let currentDate = new Date();
 
@@ -455,54 +376,7 @@ function toggleHabitCompletion(habitId) {
     }
     
     saveToLocalStorage();
-    
-    // Use requestAnimationFrame for smoother updates
-    requestAnimationFrame(() => {
-        debouncedRenderDashboard();
-        if (document.getElementById('analytics')?.classList.contains('active')) {
-            debouncedRenderCalendar();
-        }
-    });
-}
-
-// Remove duplicate debounce function and declarations
-// Keep only one instance at the top of the file
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// Create debounced versions of functions
-const debouncedRenderDashboard = debounce(renderDashboard, 150);
-const debouncedRenderCalendar = debounce(updateCalendar, 150);
-const debouncedHandleOrientationChange = debounce(() => {
     renderDashboard();
-    if (document.getElementById('analytics')?.classList.contains('active')) {
-        updateCalendar();
-    }
-}, 250);
-
-// Add a debounced version of renderDashboard for better performance
-// (Declaration moved to the bottom for a single definition.)
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
 }
 
 function populateCategoryDropdown() {
@@ -565,55 +439,20 @@ function getHabitProgress(habit) {
 }
 
 function saveToLocalStorage() {
-    try {
-        const dataToSave = JSON.stringify(state);
-        localStorage.setItem('habitHiveData', dataToSave);
-    } catch (error) {
-        console.error('Failed to save to localStorage:', error);
-        // Optionally show user feedback
-        alert('Failed to save your data. Please make sure you have enough storage space.');
-    }
+    localStorage.setItem('habitHiveData', JSON.stringify(state));
 }
 
 function loadFromLocalStorage() {
-    try {
-        const saved = localStorage.getItem('habitHiveData');
-        if (saved) {
-            state = JSON.parse(saved);
-            document.body.dataset.theme = state.settings.theme;
-            document.getElementById('themeToggle').textContent = 
-                state.settings.theme === 'light' ? '🌞' : '🌙';
-        }
-    } catch (error) {
-        console.error('Failed to load from localStorage:', error);
-        // Initialize with default state
-        state = {
-            habits: [],
-            categories: [],
-            settings: { theme: 'light' }
-        };
+    const saved = localStorage.getItem('habitHiveData');
+    if (saved) {
+        state = JSON.parse(saved);
+        document.body.dataset.theme = state.settings.theme;
+        document.getElementById('themeToggle').textContent = 
+            state.settings.theme === 'light' ? '🌞' : '🌙';
     }
 }
 
-// Optimize rendering functions
-// (Removed duplicate debouncedRenderDashboard and debouncedRenderCalendar declarations)
-
-// Touch-friendly event listeners
-function setupTouchEvents() {
-    document.querySelectorAll('.calendar-date').forEach(date => {
-        date.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            this.style.opacity = '0.7';
-        });
-
-        date.addEventListener('touchend', function() {
-            this.style.opacity = '1';
-        });
-    });
-}
-
-// Handle orientation changes
-window.addEventListener('orientationchange', debouncedHandleOrientationChange);
+// Add after your existing functions
 
 function renderHabitsList() {
     const habitsContainer = document.querySelector('.habits-container');
@@ -731,4 +570,30 @@ function deleteHabit(habitId) {
     saveToLocalStorage();
     renderHabitsList();
     renderDashboard();
+}
+
+// Modify your existing setupEventListeners function to include:
+function setupEventListeners() {
+    // ...existing code...
+    
+    // Add this to update habits list when switching to the habits page
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const page = e.target.dataset.page;
+            if (page === 'habits') {
+                renderHabitsList();
+            }
+            showPage(page);
+        });
+    });
+    
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const page = e.target.dataset.page;
+            if (page === 'analytics') {
+                setupAnalytics();
+            }
+            showPage(page);
+        });
+    });
 }
