@@ -23,11 +23,26 @@ function setupEventListeners() {
         themeToggle.addEventListener('click', toggleTheme);
     }
 
-    // Navigation
+    // Navigation - combine all navigation handlers
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            showPage(e.target.dataset.page);
+            const page = e.target.dataset.page;
+            
+            // Handle page-specific initialization
+            switch(page) {
+                case 'habits':
+                    renderHabitsList();
+                    break;
+                case 'analytics':
+                    setupAnalytics();
+                    break;
+                case 'categories':
+                    renderCategories();
+                    break;
+            }
+            
+            showPage(page);
         });
     });
 
@@ -42,29 +57,61 @@ function setupEventListeners() {
         categoryForm.addEventListener('submit', handleCategorySubmit);
     }
 
-    // Add this to update habits list when switching to the habits page
-    document.querySelectorAll('.nav-links a').forEach(link => {
-        link.addEventListener('click', (e) => {
-            const page = e.target.dataset.page;
-            if (page === 'habits') {
-                renderHabitsList();
-            }
-            showPage(page);
-        });
-    });
-    
-    document.querySelectorAll('.nav-links a').forEach(link => {
-        link.addEventListener('click', (e) => {
-            const page = e.target.dataset.page;
-            if (page === 'analytics') {
-                setupAnalytics();
-            }
-            showPage(page);
-        });
-    });
+    // Touch events
+    setupTouchInteractions();
 }
 
 // Add these new functions
+function setupTouchInteractions() {
+    // Handle button touches
+    const allButtons = document.querySelectorAll('button');
+    allButtons.forEach(button => {
+        button.addEventListener('touchstart', handleTouchStart);
+        button.addEventListener('touchend', handleTouchEnd);
+    });
+
+    // Handle checkbox touches
+    const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
+    allCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('touchstart', handleTouchStart);
+        checkbox.addEventListener('touchend', handleTouchEnd);
+    });
+
+    // Handle select touches
+    const allSelects = document.querySelectorAll('select');
+    allSelects.forEach(select => {
+        select.addEventListener('touchstart', handleTouchStart);
+    });
+
+    // Handle navigation touches
+    const navLinks = document.querySelectorAll('.nav-links a');
+    navLinks.forEach(link => {
+        link.addEventListener('touchstart', handleTouchStart);
+        link.addEventListener('touchend', handleTouchEnd);
+    });
+}
+
+function handleTouchStart(e) {
+    // Only prevent default for specific elements
+    if (this.tagName === 'BUTTON' || this.tagName === 'A' || this.type === 'checkbox') {
+        e.preventDefault();
+    }
+    this.classList.add('touch-active');
+}
+
+function handleTouchEnd(e) {
+    // Only prevent default for specific elements
+    if (this.tagName === 'BUTTON' || this.tagName === 'A' || this.type === 'checkbox') {
+        e.preventDefault();
+    }
+    this.classList.remove('touch-active');
+    
+    if (this.type === 'checkbox') {
+        this.checked = !this.checked;
+        const event = new Event('change', { bubbles: true });
+        this.dispatchEvent(event);
+    }
+}
 
 let currentDate = new Date();
 
@@ -397,7 +444,54 @@ function toggleHabitCompletion(habitId) {
     }
     
     saveToLocalStorage();
+    
+    // Use requestAnimationFrame for smoother updates
+    requestAnimationFrame(() => {
+        debouncedRenderDashboard();
+        if (document.getElementById('analytics')?.classList.contains('active')) {
+            debouncedRenderCalendar();
+        }
+    });
+}
+
+// Remove duplicate debounce function and declarations
+// Keep only one instance at the top of the file
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Create debounced versions of functions
+const debouncedRenderDashboard = debounce(renderDashboard, 150);
+const debouncedRenderCalendar = debounce(updateCalendar, 150);
+const debouncedHandleOrientationChange = debounce(() => {
     renderDashboard();
+    if (document.getElementById('analytics')?.classList.contains('active')) {
+        updateCalendar();
+    }
+}, 250);
+
+// Add a debounced version of renderDashboard for better performance
+// (Declaration moved to the bottom for a single definition.)
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }
 
 function populateCategoryDropdown() {
@@ -460,42 +554,38 @@ function getHabitProgress(habit) {
 }
 
 function saveToLocalStorage() {
-    requestAnimationFrame(() => {
-        try {
-            localStorage.setItem('habitHiveData', JSON.stringify(state));
-        } catch (e) {
-            console.error('Storage failed:', e);
-            // Handle storage error (e.g., quota exceeded)
-        }
-    });
-}
-
-function loadFromLocalStorage() {
-    const saved = localStorage.getItem('habitHiveData');
-    if (saved) {
-        state = JSON.parse(saved);
-        document.body.dataset.theme = state.settings.theme;
-        document.getElementById('themeToggle').textContent = 
-            state.settings.theme === 'light' ? '🌞' : '🌙';
+    try {
+        const dataToSave = JSON.stringify(state);
+        localStorage.setItem('habitHiveData', dataToSave);
+    } catch (error) {
+        console.error('Failed to save to localStorage:', error);
+        // Optionally show user feedback
+        alert('Failed to save your data. Please make sure you have enough storage space.');
     }
 }
 
-// Debounce function for performance
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
+function loadFromLocalStorage() {
+    try {
+        const saved = localStorage.getItem('habitHiveData');
+        if (saved) {
+            state = JSON.parse(saved);
+            document.body.dataset.theme = state.settings.theme;
+            document.getElementById('themeToggle').textContent = 
+                state.settings.theme === 'light' ? '🌞' : '🌙';
+        }
+    } catch (error) {
+        console.error('Failed to load from localStorage:', error);
+        // Initialize with default state
+        state = {
+            habits: [],
+            categories: [],
+            settings: { theme: 'light' }
         };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
+    }
 }
 
 // Optimize rendering functions
-const debouncedRenderDashboard = debounce(renderDashboard, 150);
-const debouncedRenderCalendar = debounce(updateCalendar, 150);
+// (Removed duplicate debouncedRenderDashboard and debouncedRenderCalendar declarations)
 
 // Touch-friendly event listeners
 function setupTouchEvents() {
@@ -511,19 +601,8 @@ function setupTouchEvents() {
     });
 }
 
-// Prevent double-tap zoom on mobile
-document.addEventListener('touchend', function(e) {
-    e.preventDefault();
-    e.target.click();
-}, false);
-
 // Handle orientation changes
-window.addEventListener('orientationchange', debounce(() => {
-    renderDashboard();
-    if (document.getElementById('analytics').classList.contains('active')) {
-        updateCalendar();
-    }
-}, 250));
+window.addEventListener('orientationchange', debouncedHandleOrientationChange);
 
 function renderHabitsList() {
     const habitsContainer = document.querySelector('.habits-container');
