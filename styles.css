@@ -177,6 +177,58 @@ button:active {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
+/* Button improvements */
+.submit-btn,
+.action-btn,
+button[type="submit"] {
+    -webkit-appearance: none;
+    appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    user-select: none;
+    outline: none;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Active states for touch devices */
+@media (hover: none) {
+    .submit-btn:active,
+    .action-btn:active,
+    button:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+}
+
+/* Prevent text selection on buttons */
+button,
+.submit-btn,
+.action-btn {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Ensure forms are properly spaced */
+form {
+    margin-bottom: 2rem;
+}
+
+/* Improve form controls on iOS */
+input,
+select,
+textarea,
+button {
+    -webkit-appearancei: none;
+    border-radius: 8px;
+}
+
+/* Fix for iOS button rendering */
+button {
+    background-clip: padding-box;
+}
+
 /* Categories */
 .categories-grid {
     display: grid;
@@ -528,5 +580,37 @@ button:active {
 
     .mobile-friendly-form {
         margin-bottom: 2rem; /* Add space for mobile keyboards */
+    }
+
+    /* Mobile touch improvements */
+    button, 
+    input[type="submit"],
+    .action-btn {
+        min-height: 44px; /* Minimum touch target size */
+        min-width: 44px;
+        padding: 12px 20px;
+        margin: 8px 0;
+        -webkit-tap-highlight-color: transparent; /* Remove default touch highlight */
+        touch-action: manipulation; /* Optimize touch actions */
+    }
+
+    input, 
+    select, 
+    textarea {
+        font-size: 16px !important; /* Prevent zoom on iOS */
+        min-height: 44px;
+        padding: 10px 12px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    /* Add active state for touch feedback */
+    button:active,
+    input[type="submit"]:active,
+    .action-btn:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
     }
 }
