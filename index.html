@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#ffd700">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>HabitHive - Track Your Habits</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="light">
+    <nav class="main-nav">
+        <div class="logo">🐝 HabitHive</div>
+        <div class="theme-toggle">
+            <button id="themeToggle">🌞</button>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#" class="active" data-page="dashboard">Dashboard</a></li>
+            <li><a href="#" data-page="habits">My Habits</a></li>
+            <li><a href="#" data-page="add-habit">Add Habit</a></li>
+            <li><a href="#" data-page="categories">Categories</a></li>
+            <li><a href="#" data-page="analytics">Analytics</a></li>
+        </ul>
+    </nav>
+
+    <main id="app">
+        <!-- Dashboard View -->
+        <section id="dashboard" class="page active">
+            <h1>Welcome to HabitHive</h1>
+            <div class="progress-summary">
+                <h2>Today's Progress</h2>
+                <div id="dailyProgress"></div>
+            </div>
+            <div class="categories-grid" id="categoriesGrid"></div>
+        </section>
+
+        <!-- Add Habit Form -->
+        <section id="add-habit" class="page">
+            <h2>Create New Habit</h2>
+            <form id="habitForm">
+                <div class="form-group">
+                    <label for="habitName">Habit Name</label>
+                    <input type="text" id="habitName" required>
+                </div>
+                <div class="form-group">
+                    <label for="habitDescription">Description</label>
+                    <textarea id="habitDescription"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="habitCategory">Category</label>
+                    <select id="habitCategory" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="habitFrequency">Frequency</label>
+                    <select id="habitFrequency" onchange="toggleGoalInput()">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                </div>
+                <div class="form-group" id="goalInputContainer" style="display: none;">
+                    <label for="habitGoal">Goal (times per period)</label>
+                    <input type="number" id="habitGoal" min="1" value="1">
+                </div>
+                <button type="submit">Create Habit</button>
+            </form>
+        </section>
+
+        <!-- Categories Management -->
+        <section id="categories" class="page">
+            <h2>Manage Categories</h2>
+            <form id="categoryForm">
+                <div class="form-group">
+                    <label for="categoryName">Category Name</label>
+                    <input type="text" id="categoryName" required>
+                </div>
+                <div class="form-group">
+                    <label for="categoryIcon">Icon (emoji)</label>
+                    <input type="text" id="categoryIcon" required>
+                </div>
+                <div class="form-group">
+                    <label for="categoryColor">Color</label>
+                    <input type="color" id="categoryColor" required>
+                </div>
+                <button type="submit">Add Category</button>
+            </form>
+            <div id="categoriesList" class="categories-list">
+                <!-- Categories will be rendered here -->
+            </div>
+        </section>
+
+        <!-- My Habits View -->
+        <section id="habits" class="page">
+            <h2>My Habits</h2>
+            <div class="habits-container">
+                <!-- Habits will be rendered here -->
+            </div>
+        </section>
+
+        <!-- Habit Analytics -->
+        <section id="analytics" class="page">
+            <h2>Habit Analytics</h2>
+            <div class="analytics-container">
+                <div class="habit-selector">
+                    <label for="habitSelect">Select Habit:</label>
+                    <select id="habitSelect"></select>
+                </div>
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <button id="prevMonth">←</button>
+                        <h3 id="currentMonth">January 2024</h3>
+                        <button id="nextMonth">→</button>
+                    </div>
+                    <div class="calendar-grid">
+                        <div class="calendar-days">
+                            <span>Sun</span>
+                            <span>Mon</span>
+                            <span>Tue</span>
+                            <span>Wed</span>
+                            <span>Thu</span>
+                            <span>Fri</span>
+                            <span>Sat</span>
+                        </div>
+                        <div id="calendarDates" class="calendar-dates"></div>
+                    </div>
+                </div>
+                <div class="stats-container">
+                    <div id="monthlyStats"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
