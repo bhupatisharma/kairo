@@ -54,6 +54,125 @@ body {
     min-height: 100%;
 }
 
+/* Navigation Styles */
+.main-nav {
+    background-color: var(--bg-secondary);
+    padding: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    flex-wrap: wrap;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-right: var(--spacing-lg);
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-grow: 1;
+}
+
+.nav-links a {
+    color: var(--text-primary);
+    text-decoration: none;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.theme-toggle {
+    margin-left: var(--spacing-md);
+}
+
+.theme-toggle button {
+    background: transparent;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: var(--spacing-sm);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Mobile navigation styles */
+@media (max-width: 768px) {
+    .main-nav {
+        padding: var(--spacing-sm);
+    }
+
+    .nav-container {
+        width: 100%;
+        order: 3;
+        margin-top: var(--spacing-sm);
+    }
+
+    .nav-links {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--spacing-xs);
+    }
+
+    .nav-links li {
+        width: auto;
+    }
+
+    .nav-links a {
+        display: block;
+        padding: var(--spacing-sm) var(--spacing-md);
+        text-align: center;
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .nav-links a.active {
+        background-color: var(--accent-color);
+        border-color: var(--accent-color);
+        color: var(--bg-primary);
+    }
+
+    .logo {
+        margin-right: auto;
+    }
+
+    .theme-toggle {
+        margin-left: 0;
+    }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+    .nav-links {
+        justify-content: flex-start;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: var(--spacing-xs);
+    }
+
+    .nav-links::-webkit-scrollbar {
+        display: none;
+    }
+}
+
 /* Mobile-first responsive layout */
 .main-nav {
     background-color: var(--bg-secondary);
@@ -424,4 +543,81 @@ button {
     border-radius: var(--border-radius);
     overflow: hidden;
     margin: var(--spacing-md) 0;
+}
+
+/* Mobile Touch Optimizations */
+@media (hover: none) {
+    .nav-links a:hover,
+    button:hover {
+        opacity: 1;
+    }
+}
+
+.touch-active {
+    opacity: 0.7 !important;
+    transform: scale(0.98);
+}
+
+/* Touch Target Sizes */
+button,
+input[type="checkbox"],
+select,
+.nav-links a {
+    min-height: var(--min-touch-target);
+    min-width: var(--min-touch-target);
+    padding: var(--spacing-md);
+    touch-action: manipulation;
+}
+
+/* Form Elements Touch Optimization */
+input[type="text"],
+input[type="number"],
+textarea,
+select {
+    font-size: 16px;
+    padding: var(--spacing-md);
+    margin: 0;
+}
+
+/* Touch Spacing */
+.nav-links li,
+.form-group,
+.habit-card button {
+    margin-bottom: var(--spacing-sm);
+}
+
+input[type="checkbox"] {
+    transform: scale(1.2);
+    margin: var(--spacing-sm);
+}
+
+/* Calendar Touch Improvements */
+.calendar-date {
+    min-height: var(--min-touch-target);
+    min-width: var(--min-touch-target);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+}
+
+/* Touch Feedback */
+button:active,
+.nav-links a:active {
+    transform: scale(0.98);
+    transition: transform 0.1s;
+}
+
+/* iOS Optimizations */
+* {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+/* Smooth Scrolling */
+.habits-container,
+.categories-list,
+.calendar-container {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
 }
