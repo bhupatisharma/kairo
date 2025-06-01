@@ -106,10 +106,21 @@ function handleTouchEnd(e) {
     }
     this.classList.remove('touch-active');
     
+    // Trigger click event for checkboxes
     if (this.type === 'checkbox') {
         this.checked = !this.checked;
         const event = new Event('change', { bubbles: true });
         this.dispatchEvent(event);
+        
+    } else {
+        // Trigger click for other elements
+        // Create and dispatch a click event
+        const clickEvent = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window
+        });
+        this.dispatchEvent(clickEvent);
     }
 }
 
